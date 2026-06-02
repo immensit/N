@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>특BTI - 연령 맞춤형 MBTI</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f4f6f8; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 400px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; flex-grow: 1; }
+        .active { display: flex; }
+        
+        h1 { color: #333; text-align: center; margin-bottom: 20px; line-height: 1.3;}
+        h2 { color: #222; text-align: center; word-break: keep-all; line-height: 1.4; font-size: 19px; min-height: 80px; margin-bottom: 30px;}
+        p { color: #666; text-align: center; line-height: 1.5; }
+        
+        select, button { width: 100%; padding: 16px; margin: 6px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        .answer-btn { background-color: #f8f9fa; color: #333; border: 1px solid #e0e0e0; font-weight: 500; font-size: 15px;}
+        .answer-btn:hover { background-color: #e2e6ea; }
+
+        .result-box { width: 100%; margin-top: 15px; }
+        .bar-container { width: 100%; background-color: #eee; border-radius: 8px; margin-bottom: 12px; overflow: hidden; display: flex; height: 26px;}
+        .bar-left { background-color: #007bff; height: 100%; display: flex; align-items: center; padding-left: 10px; color: white; font-size: 11px; font-weight: bold; transition: width 1s ease-in-out;}
+        .bar-right { background-color: #ff4757; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 11px; font-weight: bold; transition: width 1s ease-in-out;}
+        
+        .type-title { font-size: 46px; font-weight: 900; color: #001F3F; margin: 10px 0 5px 0; text-align: center; letter-spacing: 2px;}
+        .idol-match { font-size: 16px; color: #ff4757; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        
+        /* 사진 들어가는 영역 */
+        .character-img-wrapper { width: 160px; height: 160px; border-radius: 50%; border: 6px solid #007bff; margin: 0 auto; overflow: hidden; background-color: #e9ecef; display: flex; justify-content: center; align-items: center;}
+        .character-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="start-screen" class="screen active">
+        <h1>특BTI<br><span style="font-size:18px; color:#007bff;">연령 맞춤형 심층 성격 진단</span></h1>
+        <p style="margin-bottom: 30px;">당신의 연령대에 특화된 총 24개의 질문으로<br>나의 진짜 모습을 확인해보세요!</p>
+        <select id="age-group">
+            <option value="student">학생 (10대~20대 초반)</option>
+            <option value="worker">직장인 (20대 후반~50대)</option>
+            <option value="senior">노인 (60대 이상)</option>
+        </select>
+        <button onclick="startTest()" style="margin-top: 20px; padding: 20px;">검사 시작하기</button>
+    </div>
+
+    <div id="question-screen" class="screen">
+        <h3 id="question-number" style="color:#007bff; font-weight:900;">Q 1/24</h3>
+        <h2 id="question-text">질문이 표시됩니다.</h2>
+        
+        <div style="width: 100%; margin-top: 10px;">
+            <button class="answer-btn" onclick="nextQuestion(4)">매우 그렇다</button>
+            <button class="answer-btn" onclick="nextQuestion(3)">그렇다</button>
+            <button class="answer-btn" onclick="nextQuestion(2)">아니다</button>
+            <button class="answer-btn" onclick="nextQuestion(1)">매우 아니다</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h3 style="margin-bottom: 15px; color:#555;">당신의 특BTI 결과는...</h3>
+        
+        <div class="character-img-wrapper">
+            <img id="result-image" src="" alt="MBTI 아이돌 사진">
+        </div>
+        
+        <div class="type-title" id="mbti-result">ENFP</div>
+        <div class="idol-match" id="mbti-idol">대표 연예인: 뷔(BTS)</div>
+        
+        <div class="result-box">
+            <div class="bar-container"><div id="bar-e" class="bar-left">E</div><div id="bar-i" class="bar-right">I</div></div>
+            <div class="bar-container"><div id="bar-s" class="bar-left">S</div><div id="bar-n" class="bar-right">N</div></div>
+            <div class="bar-container"><div id="bar-t" class="bar-left">T</div><div id="bar-f" class="bar-right">F</div></div>
+            <div class="bar-container"><div id="bar-j" class="bar-left">J</div><div id="bar-p" class="bar-right">P</div></div>
+        </div>
+        
+        <p id="mbti-desc" style="font-size: 14px; background:#f8fbff; padding:15px; border-radius:10px; margin-top:15px; color:#333; line-height:1.6; text-align:left; word-break: keep-all;"></p>
+        
+        <button onclick="location.reload()" style="margin-top: 20px; background-color:#333;">다시 검사하기</button>
+    </div>
+
+</div>
+
+<script>
+    /* =========================================
+       [★중요★] 여기에 원하는 연예인 사진을 넣으세요!
+       image: "여기에 사진 주소나 파일명 입력"
+       idol: "여기에 해당 연예인 이름 입력"
+       ========================================= */
+    const mbtiResultData = {
+        "ISTJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMzA3MjJfMjgz%2FMDAxNjkwMDEyMjY0NzY1.4gkXHzUzCkQSvUykGAJMc7fy5mHDB4kOVIsxLQo4DDAg.EwHC9659WjFZuKGxUMU6QSkwXEhjZ_uETzgB_5nsjdcg.JPEG.innyfeel%2F0Gilbert_Stuart_Williamstown_Portrait_of_George_Washington.jpg&type=sc960_832=ISTJ", idol: "조지 워싱턴, 소녀시대 써니", desc: "책임감이 강하고 현실적인 일처리의 달인입니다. 규칙을 잘 지키고 믿음직스럽습니다." },
+        "ISFJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTA0MTVfMjE2%2FMDAxNzQ0Njk0NDM0MDgy.hBzeiERbSwRWuSZofm5NjI3q1hgaYgXzRGIb3_J34Nkg.d6Fyn_eiCafN25nhuimaVI7tYBK2Bj4H74sOMTAVNM8g.JPEG%2FSE-5bf549f1-8f1e-4b50-a4ee-8e0cf74ab22c.jpg&type=sc960_832=ISFJ", idol: "장도연, 트와이스 다현", desc: "따뜻하고 배려심이 깊습니다. 주변 사람들을 잘 챙기고 헌신적인 성격입니다." },
+        "INFJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTExMDRfMjU3%2FMDAxNzYyMjMyNDU1Njg3.dwGOjLoOH5IXd3lphBNFU7X64sbhuBCw8lNl8UhH--Yg.TUlJLbQld_mGFfDyDsghuQTvbqss-FtTnNxiWInK3Dgg.JPEG%2F%25B4%25D9%25BF%25EE%25B7%25CE%25B5%25E5_%252823%2529.jpg&type=sc960_832=INFJ", idol: "아이유, 태양", desc: "통찰력이 뛰어나고 사람들에게 영감을 줍니다. 본인만의 신념이 확고합니다." },
+        "INTJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNDA3MjBfNjQg%2FMDAxNzIxNDg2MTM5MzQ5.IHkp2B9sI2Up7CNyrbOwTK72L1acknVgG01godfhS0Mg.kR8zvp0q4-YQTHypuqk3uB6gBEwqHAZwVH8DbuwFDoAg.JPEG%2FSeul_%25BF%25A3%25BD%25C3%25C6%25BC%25C0%25A7%25BD%25C3_Songbird_%25BD%25C3%25BF%25C227.jpg&type=sc960_832=INTJ", idol: "nctwish 시온, 에이핑크 손나은", desc: "분석적이고 전략적인 사고를 합니다. 독립적이며 목표 달성을 위해 끊임없이 노력합니다." },
+        "ISTP": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNjAyMjVfMjcz%2FMDAxNzcyMDI2ODIwNDI1.IGortZybjDmtMXBCkhB7OnKFpViUPOOdXnooQJLB4B4g.4jZVUAVAs90o0H5fjkVepvfV0V8d6hUl3NTRpnl4yLkg.PNG%2Fimage.png&type=sc960_832=ISTP", idol: "BTS 슈가, 김연아", desc: "과묵하지만 상황 파악이 빠릅니다. 뛰어난 적응력과 문제 해결 능력을 가졌습니다." },
+        "ISFP": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTAzMThfODYg%2FMDAxNzQyMjI1MjIxODc2.PY1Fl3oyrA5SMz1j8M_aFgINb4gBV5XUuGyWf8U4cEMg.g-6uFmMmZ7RnJtVZZ_O-Y1Nrlc2cIzKRThHWtP96dJAg.PNG%2Fimage.png&type=sc960_832=ISFP", idol: "설윤, 엑소 백현", desc: "다정하고 온화합니다. 현재의 삶을 즐기며 예술적인 감각이 뛰어납니다." },
+        "INFP": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTEyMTZfMjMw%2FMDAxNzY1ODM3NzUzNzY2.vvCeVh0DiokH06aJqU3iqKtB9i9e2O2QRtbqBdifVZgg.S9PJnDik22N_tEZWWh_ybi-qvD1XgjiiNhWTeZjIl68g.JPEG%2F251215%25BF%25A4%25B8%25A3%25C4%25DA%25B8%25AE%25BE%25C6%25C8%25A8%25C6%25E4%25C0%25CC%25C1%25F69.jpg&type=sc960_832=INFP", idol: "블랙핑크 제니, BTS 정국", desc: "이상주의자이며 진정성을 중요하게 생각합니다. 내면의 가치를 탐구하는 것을 좋아합니다." },
+        "INTP": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTEwMjFfMjMy%2FMDAxNzYxMDQ5MTQ2NTM5.tmHgnFrlhP7_71HvDrNPsVhQDgLbq9FTDM--J5II4iAg.jv4yUCSUbd2q6cWawTubWHHfTr-kMTv1CjhowiNdIesg.JPEG%2F%25B4%25D9%25BF%25EE%25B7%25CE%25B5%25E5_%25288%2529.jpg&type=sc960_832=INTP", idol: "BTS 진, 기안84", desc: "지적 호기심이 많고 논리적입니다. 새로운 아이디어를 탐구하는 것을 즐깁니다." },
+        "ESTP": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTEyMjBfMTQ1%2FMDAxNzY2MjQwNTkwMTc0.FkAOJUyZTQH51Yd5Z3i6pYRHdrCOF5pyLRUqybvWHlUg.C_Br0fCssMP2iEZxAZQGNSznVB_ve5Yu3L51huNAr8kg.PNG%2Fimage.png&type=sc960_832=ESTP", idol: "전현무, 투모로우바이투게더 태현", desc: "활동적이고 직설적입니다. 스릴을 즐기며 위기 상황에 대처하는 능력이 뛰어납니다." },
+        "ESFP": { image: "https://via.placeholder.com/300x300.png?text=ESFP", idol: "비, 소녀시대 윤아", desc: "사교적이고 에너지가 넘칩니다. 어디서나 분위기 메이커 역할을 톡톡히 합니다." },
+        "ENFP": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTAyMDNfMzcg%2FMDAxNzM4NTYwMTI1NTA0.u1bNj9GRSqIgsv2jxFc2HXqVfNTftQiQELiFf0BXC_Mg.qmQRgaPQpzVcZut4oMBewuyoDC0tk_QazjF-tK7vwcYg.JPEG%2Fweverse_4-283418413.jpg&type=sc960_832=ENFP", idol: "NCT WISH 리쿠, BTS RM", desc: "열정적이고 상상력이 풍부합니다. 사람들에게 활력을 불어넣는 긍정의 아이콘입니다." },
+        "ENTP": { image: "https://search.pstatic.net/sunny/?src=https%3A%2F%2Fyt3.googleusercontent.com%2FHJWXP2DbaiEBAUDufaMO7hHRmdKzUCbjUMOrTxLF2s06Eyf5huU7Cd8oqQei6ipY_mCH0-fgxQ%3Ds900-c-k-c0x00ffffff-no-rj&type=sc960_832=ENTP", idol: "괴도키드", desc: "창의적이고 도전을 즐깁니다. 다양한 관점에서 문제를 바라보고 토론하는 것을 좋아합니다." },
+        "ESTJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTA4MDdfMjQ0%2FMDAxNzU0NTc1MTE5MDE0.5mtyCINkST0HxO5Y7smXsJrZvCDL9fGY1hdIpLV2l10g.Y3P6QKTVVwNqTa10sBOSi3tSXphuwjGa6OI6WqEjU-4g.JPEG%2FIMG%25A3%25DF1138.JPG&type=sc960_832=ESTJ", idol: "뉴진스 민지, 블랙핑크 지수", desc: "현실적이고 체계적입니다. 리더십이 뛰어나며 조직을 효율적으로 이끕니다." },
+        "ESFJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNjA0MTZfMjgg%2FMDAxNzc2Mjg5NTg2Njgw.IbDoJbtz7bmSVfE96Dswed91ZZK9fWVa0mNaUO1Ru5cg.FndFCPoWAqN3qbuPVasiqKEnkGmOsCrRX_OtAtpm-x0g.PNG%2Fimage.png&type=sc960_832=ESFJ", idol: "박보검, 혜리", desc: "친절하고 동정심이 많습니다. 다른 사람들을 돕고 조화로운 관계를 유지하는 데 탁월합니다." },
+        "ENFJ": { image: "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTA4MzFfMjI2%2FMDAxNzU2NjM1MzYzOTg5.3MMopQwJz-ETU3CIDEvEDI1Vxisr2DJ8aFkT2084UzYg.fa7B8CpDOIWNm59s5IMLz8SXmojyG8mUoMRwjI3-GGQg.JPEG%2F%25B4%25D9%25BF%25EE%25B7%25CE%25B5%25E5%25C6%25C4%25C0%25CF%25A3%25DF20250831%25A3%25DF191432.jpg&type=sc960_832=ENFJ", idol: "BTS 지민, 송중기", desc: "카리스마 있고 타인의 성장을 돕습니다. 공감 능력이 뛰어나며 사람들을 이끄는 리더입니다." },
+        "ENTJ": { image: "https://search.pstatic.net/sunny/?src=https%3A%2F%2Ft1.daumcdn.net%2Fcafeattach%2FmEr9%2Fe4fae99c336cbb7a6d69784b6d52ff5145929783&type=sc960_832=ENTJ", idol: "지코, 장원영", desc: "대담하고 통솔력이 있습니다. 장기적인 비전을 세우고 이를 실행으로 옮기는 데 능숙합니다." }
+    };
+
+    // 상태 변수
+    let currentAgeGroup = 'student';
+    let currentQuestionIndex = 0;
+    let scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+
+    // 각 연령별 24문항 (E/I 6개, S/N 6개, T/F 6개, J/P 6개) - 총 72문항
+    const questionsDB = {
+        student: [
+            { type: "EI", text: "새 학기, 모르는 친구들 사이에서도 내가 먼저 다가가 인사를 건네는 편이다." },
+            { type: "EI", text: "주말에는 집에 혼자 있는 것보다 친구들과 만나서 노는 것이 에너지가 충전된다." },
+            { type: "EI", text: "조별 과제를 할 때 의견을 적극적으로 내고 발표를 자원하는 편이다." },
+            { type: "EI", text: "친구가 다른 학교 친구들을 여러 명 데리고 와서 같이 놀자고 하면 신나고 기대된다." },
+            { type: "EI", text: "쉬는 시간에 자리에 가만히 앉아있기보다 교실을 돌아다니며 친구들과 떠드는 게 좋다." },
+            { type: "EI", text: "SNS(인스타 등)에 내 일상을 자주 올리고 친구들과 댓글로 소통하는 것을 즐긴다." },
+            { type: "SN", text: "공부할 때, 전체적인 흐름보다는 구체적인 공식과 세부 암기 내용을 먼저 챙긴다." },
+            { type: "SN", text: "만약에 지구에 좀비가 나타나면? 같은 쓸데없는 상상보다는 당장의 기말고사가 더 걱정된다." },
+            { type: "SN", text: "수학이나 과학을 배울 때, 이게 실생활에 어떻게 쓰이는지 정확한 팩트를 알려주는 게 좋다." },
+            { type: "SN", text: "수행평가를 할 때 독창적이고 새로운 아이디어보다, 선생님이 제시한 양식을 정확히 맞추는 게 편하다." },
+            { type: "SN", text: "소설을 읽을 때 비유나 은유가 많은 글보다 상황이 정확하게 묘사된 글이 읽기 편하다." },
+            { type: "SN", text: "길을 찾을 때 '저기 큰 건물에서 꺾어'라는 감각적 설명보다 '100m 직진 후 우회전'이 좋다." },
+            { type: "TF", text: "친구가 '나 시험 망쳐서 우울해'라고 하면, 위로보다 '몇 점 받았는데? 어디 틀렸어?'가 먼저 나온다." },
+            { type: "TF", text: "조별 과제 중 친구가 힘들어하면 안타깝지만, 결과물의 퀄리티가 떨어지는 것은 절대 용납할 수 없다." },
+            { type: "TF", text: "선생님께 칭찬받을 때 '정말 착하다'라는 말보다 '논리적이고 똑똑하다'는 말이 더 뿌듯하다." },
+            { type: "TF", text: "친구가 나와 다른 의견을 낼 때, 친구 기분이 상할까 걱정하기보다 내 의견이 왜 맞는지 설명하고 싶다." },
+            { type: "TF", text: "갈등이 생겼을 때 서로 사과하고 감정을 푸는 것보다, 누가 잘못했는지 시시비비를 가리는 게 중요하다." },
+            { type: "TF", text: "영화를 볼 때 슬픈 장면에서 울기보다 '저 상황이 말이 되나?' 하고 개연성을 따지게 된다." },
+            { type: "JP", text: "시험 한 달 전부터 과목별로 공부할 분량을 정해서 스터디 플래너를 꼼꼼하게 작성한다." },
+            { type: "JP", text: "방학을 보낼 때 그날 기분에 따라 놀기보다 미리 세워둔 규칙적인 계획에 따라 움직인다." },
+            { type: "JP", text: "내 책상이나 사물함은 항상 물건들이 정해진 제자리에 잘 정리되어 있어야 마음이 편하다." },
+            { type: "JP", text: "과제가 주어지면 마감일 직전까지 미루지 않고 며칠 전부터 미리미리 완성해 둔다." },
+            { type: "JP", text: "친구들과 놀러 가기로 했을 때, 어디서 만나서 몇 시에 뭘 할지 코스를 다 짜놔야 직성이 풀린다." },
+            { type: "JP", text: "갑자기 시간표가 바뀌거나 예상치 못한 일이 생기면 스트레스를 꽤 많이 받는 편이다." }
+        ],
+        worker: [
+            { type: "EI", text: "퇴근 후 지쳐있더라도 회사 동기들이나 친구들과 치맥을 하면 에너지가 다시 차오른다." },
+            { type: "EI", text: "업무 중 모르는 것이 생기면, 혼자 구글링하며 끙끙대기보다 옆자리 동료에게 바로 물어본다." },
+            { type: "EI", text: "새로운 프로젝트나 TF팀에 발탁되어 타 부서 사람들과 새로 알아가는 과정이 즐겁다." },
+            { type: "EI", text: "회의 시간에 내 의견을 사람들에게 발표하고 설득하는 자리가 별로 두렵지 않다." },
+            { type: "EI", text: "휴가 때 아무도 없는 조용한 곳에서 쉬기보다, 사람 많고 활기찬 휴양지를 선호한다." },
+            { type: "EI", text: "팀 내에서 침묵이 흐르는 것을 견디기 힘들어 내가 먼저 농담이나 스몰토크를 꺼낸다." },
+            { type: "SN", text: "기획안을 쓸 때, 새롭고 혁신적인 아이디어보다 기존의 확실한 데이터와 성공 사례를 기반으로 한다." },
+            { type: "SN", text: "회사 비전이나 5년 뒤의 미래 같은 이야기보다 이번 주 매출이나 당장의 실무 해결책이 중요하다." },
+            { type: "SN", text: "상사가 '알아서 센스있게 해줘'라고 지시하는 것보다 'A는 이렇게, B는 저렇게' 명확히 지시하는 게 좋다." },
+            { type: "SN", text: "업무 메일을 쓸 때 비유나 긴 설명 없이 현황, 문제점, 요청사항만 딱 떨어지게 작성한다." },
+            { type: "SN", text: "경쟁사 분석을 할 때 그들의 '브랜드 철학'보다 '가격 정책과 점유율 통계'를 먼저 본다." },
+            { type: "SN", text: "동료가 겪은 일을 얘기해줄 때 내 머릿속에는 그 상황이 그림보다는 사실과 타임라인으로 정리된다." },
+            { type: "TF", text: "후배가 일 때문에 힘들다고 울 때, 등을 토닥여주기보다 실질적으로 업무를 줄여줄 방안을 고민한다." },
+            { type: "TF", text: "성격은 천사 같지만 일처리가 느린 상사보다, 성격은 괴팍해도 업무 피드백이 명확한 상사가 훨씬 낫다." },
+            { type: "TF", text: "인사 고과 면담에서 '팀 분위기 메이커'라는 평보다 '문제 해결 능력이 탁월함'이라는 평을 원한다." },
+            { type: "TF", text: "회의 중 의견 충돌이 날 때, 기분 상하는 한이 있더라도 회사의 이익을 위해 팩트를 짚고 넘어간다." },
+            { type: "TF", text: "동료의 기획안을 리뷰할 때 좋은 점을 먼저 칭찬하기보다 보완해야 할 논리적 허점을 바로 지적한다." },
+            { type: "TF", text: "회사 생활은 결국 친목이 아니라 성과로 증명하는 곳이라고 확고하게 생각한다." },
+            { type: "JP", text: "출근하자마자 오늘 해야 할 업무(To-do list)부터 쭉 적어놓고 우선순위대로 하나씩 지워나간다." },
+            { type: "JP", text: "일하다가 갑자기 상사가 급한 업무를 던져서 내 원래 스케줄이 엉망이 되면 극도로 스트레스를 받는다." },
+            { type: "JP", text: "연차를 쓰고 해외여행을 갈 때, 발길 닿는 대로 가기보다 시간 단위나 동선별로 일정을 완벽히 짠다." },
+            { type: "JP", text: "결재를 올릴 때나 서류를 정리할 때 폰트, 자간, 파일명 규칙 등을 나만의 기준에 맞춰 딱딱 정리한다." },
+            { type: "JP", text: "마감일(Deadline)이 있는 업무는 닥쳐서 하기보다 무조건 하루 이틀 전에 여유롭게 끝내놓아야 안심된다." },
+            { type: "JP", text: "회의가 끝났는데 '다음 회의 때 다시 정하시죠' 하고 결론 없이 흐지부지 끝나는 상황을 아주 싫어한다." }
+        ],
+        senior: [
+            { type: "EI", text: "노인회관, 동호회, 복지관 등 사람들이 많이 모이는 곳에 자주 나가서 어울리는 것을 좋아한다." },
+            { type: "EI", text: "주말에 자녀나 친척, 손주들이 우르르 다녀가서 집안이 북적거릴 때 살아있음을 느낀다." },
+            { type: "EI", text: "산책을 하거나 마트에 갈 때, 모르는 이웃과 눈이 마주쳐도 스스럼없이 먼저 인사를 건넨다." },
+            { type: "EI", text: "집에 혼자 TV만 보고 있으면 우울해져서 무조건 밖으로 나가 누군가를 만나야 직성이 풀린다." },
+            { type: "EI", text: "모임에 나가면 구석에 조용히 앉아있기보다 내가 주로 이야기를 주도하거나 농담을 던진다." },
+            { type: "EI", text: "새로운 취미 교실(노래, 탁구 등)에 가서 새로운 사람들과 친구 맺는 과정이 전혀 두렵지 않다." },
+            { type: "SN", text: "건강 정보를 들을 때, '몸에 기운이 돈다'는 말보다 의사의 명확한 수치(혈압, 혈당)를 더 신뢰한다." },
+            { type: "SN", text: "옛날 젊은 시절의 추억을 떠올릴 때 그 당시의 분위기보다 '언제, 어디서, 누구와' 있었는지 정확히 기억한다." },
+            { type: "SN", text: "앞으로의 내 인생을 생각할 때 '삶의 진정한 의미' 같은 철학적 고민보다 당장의 건강과 식단에 더 집중한다." },
+            { type: "SN", text: "가전제품을 새로 사면, 이리저리 만져보며 직감으로 익히기보다 설명서를 처음부터 꼼꼼히 읽어본다." },
+            { type: "SN", text: "연속극을 볼 때도 말도 안 되는 상상력이 들어간 판타지보다 현실에서 일어날 법한 가족 드라마가 좋다." },
+            { type: "SN", text: "누군가 내게 길을 물어보면 '저기 큰 나무 쪽'이라기보다 '두 블록 지나서 우측 건널목'이라고 설명한다." },
+            { type: "TF", text: "자녀가 밖에서 겪은 속상한 일을 털어놓을 때, 무조건 편들기보다 상황을 꼼꼼히 따져서 시시비비를 가려준다." },
+            { type: "TF", text: "배우자나 지인에게 서운한 점이 생겼을 때, 감정적으로 화내기보다 어떤 점이 문제인지 조목조목 이야기한다." },
+            { type: "TF", text: "뉴스를 볼 때 안타까운 사연에 슬퍼하고 눈물짓기보다 왜 저런 사고가 났는지 원인 파악에 더 관심이 간다." },
+            { type: "TF", text: "친구가 아프다고 할 때 '아이고 어떡해' 하며 공감하기보다 '어디 병원 가봤어? 약은 먹었어?'를 먼저 묻는다." },
+            { type: "TF", text: "사람을 평가할 때 '정이 많고 따뜻한 사람'이라는 것도 좋지만 '능력 있고 똑 부러지는 사람'을 더 높게 쳐준다." },
+            { type: "TF", text: "가족 간에 중요한 결정을 내릴 때, 모두의 기분을 맞추기보다는 금전적, 현실적 이익을 냉정하게 계산한다." },
+            { type: "JP", text: "기상 시간, 식사 시간, 약 먹는 시간, 취침 시간 등 매일의 하루 일과표가 규칙적으로 정해져 있다." },
+            { type: "JP", text: "집안의 물건들이나 가구는 항상 쓰던 자리에 그대로 있어야 마음이 편하고, 누군가 위치를 바꾸면 불편하다." },
+            { type: "JP", text: "가족 여행이나 나들이를 할 때, 그때그때 상황에 맞춰 움직이기보다 사전에 정해둔 식당과 코스대로 가야 한다." },
+            { type: "JP", text: "집안 경조사나 제사, 생일 등 중요한 날은 달력에 꼼꼼히 표시해두고 미리미리 준비물을 챙겨둔다." },
+            { type: "JP", text: "장을 보러 갈 때 마트에 가서 눈에 띄는 대로 담기보다, 사야 할 품목을 미리 메모지에 적어간다." },
+            { type: "JP", text: "약속 시간이 있으면 상대방을 기다리게 하는 것이 싫어서 항상 10분, 20분 전에 미리 나가 있는 편이다." }
+        ]
+    };
+
+    let currentQuestions = [];
+
+    function startTest() {
+        const ageSelect = document.getElementById("age-group");
+        currentAgeGroup = ageSelect.value;
+        currentQuestions = questionsDB[currentAgeGroup];
+        currentQuestionIndex = 0;
+        
+        // 점수 초기화
+        scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+        
+        document.getElementById("start-screen").classList.remove("active");
+        document.getElementById("question-screen").classList.add("active");
+        
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        if (currentQuestionIndex >= currentQuestions.length) {
+            calculateResult();
+            return;
+        }
+        document.getElementById("question-number").innerText = `Q ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById("question-text").innerText = currentQuestions[currentQuestionIndex].text;
+    }
+
+    function nextQuestion(score) {
+        const qType = currentQuestions[currentQuestionIndex].type;
+        
+        if (qType === "EI") { score >= 3 ? scores.E += score : scores.I += (5 - score); }
+        if (qType === "SN") { score >= 3 ? scores.S += score : scores.N += (5 - score); }
+        if (qType === "TF") { score >= 3 ? scores.T += score : scores.F += (5 - score); }
+        if (qType === "JP") { score >= 3 ? scores.J += score : scores.P += (5 - score); }
+
+        currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    function calculateResult() {
+        document.getElementById("question-screen").classList.remove("active");
+        document.getElementById("result-screen").classList.add("active");
+
+        // 최종 MBTI 도출
+        const mbti = [
+            scores.E >= scores.I ? "E" : "I",
+            scores.S >= scores.N ? "S" : "N",
+            scores.T >= scores.F ? "T" : "F",
+            scores.J >= scores.P ? "J" : "P"
+        ].join("");
+
+        // 결과 화면에 데이터 렌더링
+        const resultData = mbtiResultData[mbti];
+        
+        document.getElementById("mbti-result").innerText = mbti;
+        document.getElementById("result-image").src = resultData.image; // 연예인 이미지 삽입
+        document.getElementById("mbti-idol").innerText = "찰떡 연예인: " + resultData.idol;
+        
+        const groupName = currentAgeGroup === 'student' ? '학생' : (currentAgeGroup === 'worker' ? '직장인' : '노인');
+        document.getElementById("mbti-desc").innerHTML = `<b>[${groupName} 특화 분석]</b><br>${resultData.desc}`;
+
+        // 퍼센트 바 애니메이션
+        setTimeout(() => {
+            setBar("E", "I", scores.E, scores.I);
+            setBar("S", "N", scores.S, scores.N);
+            setBar("T", "F", scores.T, scores.F);
+            setBar("J", "P", scores.J, scores.P);
+        }, 100);
+    }
+
+    function setBar(leftType, rightType, leftScore, rightScore) {
+        const total = leftScore + rightScore || 1;
+        const leftPercent = Math.round((leftScore / total) * 100);
+        const rightPercent = 100 - leftPercent;
+
+        const leftBar = document.getElementById(`bar-${leftType.toLowerCase()}`);
+        const rightBar = document.getElementById(`bar-${rightType.toLowerCase()}`);
+
+        leftBar.style.width = `${leftPercent}%`;
+        leftBar.innerText = leftPercent > 10 ? `${leftType} ${leftPercent}%` : leftType;
+        
+        rightBar.style.width = `${rightPercent}%`;
+        rightBar.innerText = rightPercent > 10 ? `${rightPercent}% ${rightType}` : rightType;
+    }
+</script>
+
+</body>
+</html>
